@@ -1,0 +1,24 @@
+{
+  "name": "drone-ci-helper-client",
+  "version": "0.1.0",
+  "description": "Drone CI Helper - VS Code Client",
+  "main": "./out/extension.js",
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -w -p ./",
+    "test": "node ./out/test/runTest.js"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.75.0",
+    "@types/node": "^18.0.0",
+    "@types/mocha": "^10.0.0",
+    "@types/glob": "^8.0.0",
+    "@vscode/test-electron": "^2.3.0",
+    "glob": "^8.0.0",
+    "mocha": "^10.0.0",
+    "typescript": "^5.0.0"
+  }
+}

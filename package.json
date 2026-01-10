@@ -1,0 +1,119 @@
+{
+  "name": "drone-ci-helper",
+  "displayName": "Drone CI Helper",
+  "description": "VS Code extension for Drone CI YAML validation, autocomplete, and documentation",
+  "version": "0.1.0",
+  "publisher": "drone-ci-helper",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Snippets"
+  ],
+  "keywords": [
+    "drone",
+    "drone-ci",
+    "yaml",
+    "validation",
+    "ci/cd"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/drone-ci-helper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/drone-ci-helper/issues"
+  },
+  "homepage": "https://github.com/yourusername/drone-ci-helper#readme",
+  "activationEvents": [
+    "onLanguage:yaml"
+  ],
+  "main": "./client/out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "drone-yaml",
+        "aliases": [
+          "Drone CI YAML"
+        ],
+        "filenames": [
+          ".drone.yml"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "drone-yaml",
+        "scopeName": "source.drone-yaml",
+        "path": "./syntaxes/drone.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "drone-yaml",
+        "path": "./snippets/drone.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "droneCI.validate",
+        "title": "Drone CI: Validate YAML"
+      },
+      {
+        "command": "droneCI.openDocs",
+        "title": "Drone CI: Open Documentation"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Drone CI Helper",
+      "properties": {
+        "droneCI.validation.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable Drone CI YAML validation"
+        },
+        "droneCI.validation.schemaSource": {
+          "type": "string",
+          "default": "bundled",
+          "enum": [
+            "bundled",
+            "remote"
+          ],
+          "description": "Use bundled schema or fetch from schemastore.org"
+        },
+        "droneCI.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VS Code and the language server"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -b",
+    "watch": "tsc -b -w",
+    "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
+    "test": "npm run test:server && npm run test:client",
+    "test:server": "cd server && npm test",
+    "test:client": "cd client && npm test",
+    "update-schema": "ts-node scripts/update-schema.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  }
+}

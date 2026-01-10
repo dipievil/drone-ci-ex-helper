@@ -1,0 +1,218 @@
+{
+  "Drone Pipeline": {
+    "prefix": "drone-pipeline",
+    "body": [
+      "kind: pipeline",
+      "type: docker",
+      "name: ${1:default}",
+      "",
+      "steps:",
+      "  - name: ${2:build}",
+      "    image: ${3:node:18}",
+      "    commands:",
+      "      - ${4:npm install}",
+      "      - ${5:npm run build}"
+    ],
+    "description": "Basic Drone CI pipeline"
+  },
+  "Drone Step": {
+    "prefix": "drone-step",
+    "body": [
+      "- name: ${1:step-name}",
+      "  image: ${2:alpine:latest}",
+      "  commands:",
+      "    - ${3:echo 'Hello World'}"
+    ],
+    "description": "Drone CI pipeline step"
+  },
+  "Drone Docker Pipeline": {
+    "prefix": "drone-pipeline-docker",
+    "body": [
+      "kind: pipeline",
+      "type: docker",
+      "name: ${1:docker-pipeline}",
+      "",
+      "platform:",
+      "  os: linux",
+      "  arch: amd64",
+      "",
+      "steps:",
+      "  - name: ${2:test}",
+      "    image: ${3:node:18}",
+      "    commands:",
+      "      - ${4:npm test}",
+      "",
+      "trigger:",
+      "  branch:",
+      "    - ${5:main}",
+      "    - ${6:develop}",
+      "  event:",
+      "    - push",
+      "    - pull_request"
+    ],
+    "description": "Complete Docker pipeline with triggers"
+  },
+  "Drone Service": {
+    "prefix": "drone-service",
+    "body": [
+      "- name: ${1:database}",
+      "  image: ${2:postgres:14}",
+      "  environment:",
+      "    POSTGRES_USER: ${3:user}",
+      "    POSTGRES_PASSWORD: ${4:password}",
+      "    POSTGRES_DB: ${5:testdb}"
+    ],
+    "description": "Drone CI service definition"
+  },
+  "Drone Trigger": {
+    "prefix": "drone-trigger",
+    "body": [
+      "trigger:",
+      "  branch:",
+      "    - ${1:main}",
+      "  event:",
+      "    - ${2|push,pull_request,tag,promote,rollback,cron,custom|}"
+    ],
+    "description": "Drone CI pipeline trigger"
+  },
+  "Drone When Condition": {
+    "prefix": "drone-when",
+    "body": [
+      "when:",
+      "  branch:",
+      "    - ${1:main}",
+      "  event:",
+      "    - ${2|push,pull_request,tag|}"
+    ],
+    "description": "Drone CI conditional execution"
+  },
+  "Drone Plugin": {
+    "prefix": "drone-plugin",
+    "body": [
+      "- name: ${1:plugin-name}",
+      "  image: plugins/${2:docker}",
+      "  settings:",
+      "    ${3:key}: ${4:value}"
+    ],
+    "description": "Drone CI plugin step"
+  },
+  "Drone Docker Plugin": {
+    "prefix": "drone-plugin-docker",
+    "body": [
+      "- name: ${1:docker-build}",
+      "  image: plugins/docker",
+      "  settings:",
+      "    repo: ${2:username/repository}",
+      "    tags:",
+      "      - ${3:latest}",
+      "      - ${4:\\${DRONE_COMMIT_SHA:0:7}}",
+      "    username:",
+      "      from_secret: ${5:docker_username}",
+      "    password:",
+      "      from_secret: ${6:docker_password}"
+    ],
+    "description": "Docker build and push plugin"
+  },
+  "Drone Slack Plugin": {
+    "prefix": "drone-plugin-slack",
+    "body": [
+      "- name: ${1:slack}",
+      "  image: plugins/slack",
+      "  settings:",
+      "    webhook:",
+      "      from_secret: ${2:slack_webhook}",
+      "    channel: ${3:general}",
+      "    template: >",
+      "      {{#success build.status}}",
+      "        ✅ Build {{build.number}} succeeded.",
+      "      {{else}}",
+      "        ❌ Build {{build.number}} failed.",
+      "      {{/success}}",
+      "  when:",
+      "    status:",
+      "      - success",
+      "      - failure"
+    ],
+    "description": "Slack notification plugin"
+  },
+  "Drone Environment Variables": {
+    "prefix": "drone-environment",
+    "body": [
+      "environment:",
+      "  ${1:VAR_NAME}: ${2:value}",
+      "  ${3:SECRET_VAR}:",
+      "    from_secret: ${4:secret_name}"
+    ],
+    "description": "Environment variables configuration"
+  },
+  "Drone Clone Settings": {
+    "prefix": "drone-clone",
+    "body": [
+      "clone:",
+      "  depth: ${1:50}",
+      "  disable: ${2|false,true|}"
+    ],
+    "description": "Clone settings"
+  },
+  "Drone Workspace": {
+    "prefix": "drone-workspace",
+    "body": [
+      "workspace:",
+      "  path: ${1:/drone/src}"
+    ],
+    "description": "Workspace configuration"
+  },
+  "Drone Depends On": {
+    "prefix": "drone-depends",
+    "body": [
+      "depends_on:",
+      "  - ${1:step-name}"
+    ],
+    "description": "Step dependencies"
+  },
+  "Drone Volume Mount": {
+    "prefix": "drone-volume",
+    "body": [
+      "volumes:",
+      "  - name: ${1:cache}",
+      "    path: ${2:/cache}"
+    ],
+    "description": "Volume mount in step"
+  },
+  "Drone Volume Definition": {
+    "prefix": "drone-volume-def",
+    "body": [
+      "volumes:",
+      "  - name: ${1:cache}",
+      "    host:",
+      "      path: ${2:/tmp/cache}"
+    ],
+    "description": "Volume definition in pipeline"
+  },
+  "Drone Kubernetes Pipeline": {
+    "prefix": "drone-pipeline-kubernetes",
+    "body": [
+      "kind: pipeline",
+      "type: kubernetes",
+      "name: ${1:kubernetes-pipeline}",
+      "",
+      "steps:",
+      "  - name: ${2:build}",
+      "    image: ${3:node:18}",
+      "    commands:",
+      "      - ${4:npm install}",
+      "      - ${5:npm run build}"
+    ],
+    "description": "Kubernetes pipeline"
+  },
+  "Drone Secret": {
+    "prefix": "drone-secret",
+    "body": [
+      "kind: secret",
+      "type: ${1|general,encrypted|}",
+      "name: ${2:secret-name}",
+      "data: ${3:secret-value}"
+    ],
+    "description": "Drone CI secret definition"
+  }
+}

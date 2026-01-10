@@ -1,0 +1,24 @@
+{
+  "name": "drone-ci-helper-server",
+  "version": "0.1.0",
+  "description": "Drone CI Helper - Language Server",
+  "main": "./out/server.js",
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -w -p ./",
+    "test": "mocha --require ts-node/register src/test/**/*.test.ts"
+  },
+  "dependencies": {
+    "vscode-languageserver": "^8.1.0",
+    "vscode-languageserver-textdocument": "^1.0.8",
+    "yaml": "^2.3.0",
+    "ajv": "^8.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/mocha": "^10.0.0",
+    "mocha": "^10.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  }
+}

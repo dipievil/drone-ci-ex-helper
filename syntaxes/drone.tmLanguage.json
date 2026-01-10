@@ -1,0 +1,100 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Drone CI YAML",
+  "scopeName": "source.drone-yaml",
+  "patterns": [
+    {
+      "include": "#drone-keywords"
+    },
+    {
+      "include": "#drone-values"
+    },
+    {
+      "include": "#yaml-base"
+    }
+  ],
+  "repository": {
+    "drone-keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.drone",
+          "match": "^\\s*(kind|type|name|steps|pipeline|trigger|image|commands|services|volumes|environment|when|depends_on|platform|clone|workspace|concurrency|node|server|workspace|clone_disabled|status|branch|event|ref|target|cron|action|tag|pull_request|privileged|settings|detach|network_mode|dns|dns_search|extra_hosts|failure|success|changed|limit|path|base):"
+        },
+        {
+          "name": "entity.name.type.drone",
+          "match": "(?<=kind:\\s+)(pipeline|secret|signature|cron)"
+        },
+        {
+          "name": "entity.name.type.drone",
+          "match": "(?<=type:\\s+)(docker|exec|kubernetes|digitalocean|ssh|template)"
+        },
+        {
+          "name": "constant.language.drone",
+          "match": "(?<=event:\\s+)(push|pull_request|tag|promote|rollback|cron|custom)"
+        },
+        {
+          "name": "constant.language.drone",
+          "match": "(?<=status:\\s+)(success|failure)"
+        }
+      ]
+    },
+    "drone-values": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.drone",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.drone",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.drone",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.drone",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "constant.numeric.drone",
+          "match": "\\b[0-9]+\\b"
+        },
+        {
+          "name": "constant.language.boolean.drone",
+          "match": "\\b(true|false|yes|no)\\b"
+        }
+      ]
+    },
+    "yaml-base": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.drone",
+          "match": "#.*$"
+        },
+        {
+          "name": "punctuation.definition.block.sequence.item.drone",
+          "match": "^\\s*-"
+        },
+        {
+          "name": "punctuation.separator.key-value.drone",
+          "match": ":"
+        },
+        {
+          "name": "punctuation.definition.anchor.drone",
+          "match": "&\\w+"
+        },
+        {
+          "name": "punctuation.definition.alias.drone",
+          "match": "\\*\\w+"
+        }
+      ]
+    }
+  }
+}
