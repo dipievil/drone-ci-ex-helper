@@ -19,6 +19,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import * as YAML from 'yaml';
 import Ajv, { JSONSchemaType, ValidateFunction } from 'ajv';
+import addFormats from 'ajv-formats';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -73,6 +74,8 @@ connection.onInitialize((params: InitializeParams) => {
 });
 
 connection.onInitialized(() => {
+  connection.console.log('Drone CI Language Server initialized!');
+  
   if (hasConfigurationCapability) {
     // Register for all configuration changes.
     connection.client.register(DidChangeConfigurationNotification.type, undefined);
@@ -99,6 +102,7 @@ function loadDroneSchema() {
     const k8sSchema = JSON.parse(k8sSchemaContent);
 
     ajv = new Ajv({ allErrors: true, strict: false });
+    addFormats(ajv);
     ajv.addSchema(k8sSchema);
     validateSchema = ajv.compile(droneSchema);
 
@@ -165,11 +169,14 @@ documents.onDidClose(e => {
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 documents.onDidChangeContent(change => {
+  connection.console.log(`Document changed: ${change.document.uri}`);
   validateTextDocument(change.document);
 });
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   const settings = await getDocumentSettings(textDocument.uri);
+  
+  connection.console.log(`Validating document: ${textDocument.uri}, enabled: ${settings.validation.enabled}`);
 
   if (!settings.validation.enabled) {
     return;
@@ -199,6 +206,11 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
       // Validate against schema
       const yamlObj = doc.toJSON();
       const valid = validateSchema(yamlObj);
+
+      connection.console.log(`Schema validation result: ${valid}`);
+      if (!valid && validateSchema.errors) {
+        connection.console.log(`Validation errors: ${JSON.stringify(validateSchema.errors, null, 2)}`);
+      }
 
       if (!valid && validateSchema.errors) {
         for (const error of validateSchema.errors) {

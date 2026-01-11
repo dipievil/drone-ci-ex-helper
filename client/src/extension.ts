@@ -10,6 +10,8 @@ import {
 let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
+  console.log('Drone CI Helper extension is now activating!');
+  
   // The server is implemented in node
   const serverModule = context.asAbsolutePath(
     path.join('server', 'out', 'server.js')
@@ -35,12 +37,14 @@ export function activate(context: ExtensionContext) {
     // Register the server for Drone CI YAML files
     documentSelector: [
       { scheme: 'file', language: 'drone-yaml' },
+      { scheme: 'file', language: 'yaml', pattern: '**/.drone.yml' },
       { scheme: 'file', pattern: '**/.drone.yml' }
     ],
     synchronize: {
       // Notify the server about file changes to '.drone.yml' files contained in the workspace
       fileEvents: workspace.createFileSystemWatcher('**/.drone.yml')
-    }
+    },
+    outputChannelName: 'Drone CI Helper'
   };
 
   // Create the language client and start the client.
@@ -84,6 +88,8 @@ export function activate(context: ExtensionContext) {
 
   // Start the client. This will also launch the server
   client.start();
+  
+  console.log('Drone CI Helper Language Client started!');
 }
 
 export function deactivate(): Thenable<void> | undefined {

@@ -8,7 +8,6 @@ vsc-extension-quickstart.md
 **/.eslintrc.json
 **/*.map
 **/*.ts
-**/node_modules/**
 server/src/**
 client/src/**
 scripts/**
@@ -16,3 +15,10 @@ scripts/**
 *.md
 !README.md
 !CHANGELOG.md
+!CONTRIBUTING.md
+**/test/**
+**/.eslintrc*
+.editorconfig
+.npmrc
+**/tsconfig.tsbuildinfo
+.drone.yml

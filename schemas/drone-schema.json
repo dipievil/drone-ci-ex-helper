@@ -65,6 +65,44 @@
         "type": "string"
       }
     },
+    "eventCondition": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "push",
+          "pull_request",
+          "tag",
+          "promote",
+          "rollback",
+          "cron",
+          "custom"
+        ]
+      }
+    },
+    "eventConditions": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/eventCondition"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "include": {
+              "$ref": "#/definitions/eventCondition"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "exclude": {
+              "$ref": "#/definitions/eventCondition"
+            }
+          }
+        }
+      ]
+    },
     "conditions": {
       "anyOf": [
         {
@@ -98,7 +136,7 @@
           "$ref": "#/definitions/conditions"
         },
         "event": {
-          "$ref": "#/definitions/conditions"
+          "$ref": "#/definitions/eventConditions"
         },
         "paths": {
           "$ref": "#/definitions/conditions"

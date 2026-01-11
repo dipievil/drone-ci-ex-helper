@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -20,6 +21,7 @@ describe('Drone Schema Validation', () => {
       allErrors: true, 
       strict: false
     });
+    addFormats(ajv);
     ajv.addSchema(k8sSchema);
     validateSchema = ajv.compile(droneSchema);
   });
@@ -121,5 +123,32 @@ describe('Drone Schema Validation', () => {
 
     const valid = validateSchema(pipeline);
     assert.strictEqual(valid, false, 'Pipeline without steps should be invalid');
+  });
+
+  it('should reject pipeline with invalid event in trigger', () => {
+    const pipeline = {
+      kind: 'pipeline',
+      type: 'docker',
+      name: 'test',
+      steps: [
+        {
+          name: 'test',
+          image: 'alpine',
+          commands: ['echo test']
+        }
+      ],
+      trigger: {
+        event: ['push', 'feijao']
+      }
+    };
+
+    const valid = validateSchema(pipeline);
+    assert.strictEqual(valid, false, 'Pipeline with invalid event should be invalid');
+    if (validateSchema.errors) {
+      const hasEventError = validateSchema.errors.some((err: any) => 
+        err.instancePath.includes('/trigger/event')
+      );
+      assert.ok(hasEventError, 'Should have error in trigger/event path');
+    }
   });
 });

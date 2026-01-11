@@ -5,31 +5,37 @@ A powerful VS Code extension for working with Drone CI YAML files, providing val
 ## Features
 
 ### ✨ Real-time YAML Validation
+
 - Automatic validation against the official Drone CI JSON schema
 - Inline error messages and diagnostics
 - Schema validation from schemastore.org
 
 ### 🔍 Intelligent Autocomplete
+
 - Context-aware suggestions for Drone CI properties
 - Completion for pipeline types, triggers, and configurations
 - Enum value suggestions for fields like `kind`, `type`, and `event`
 
 ### 📖 Hover Documentation
+
 - Inline documentation for Drone CI properties
 - Property types and valid values
 - Direct links to official Drone CI documentation
 
 ### 🎨 Syntax Highlighting
+
 - Custom TextMate grammar for Drone CI YAML
 - Highlighting for Drone-specific keywords and values
 - Better readability for `.drone.yml` files
 
 ### 📝 Code Snippets
+
 - Comprehensive snippet collection for common patterns
 - Snippets for pipelines, steps, services, and plugins
 - Quick scaffolding for Docker, Kubernetes, and other pipeline types
 
 ### ⚡ Commands
+
 - **Drone CI: Validate YAML** - Manually trigger validation for `.drone.yml` files
 - **Drone CI: Open Documentation** - Quick access to Drone CI documentation
 
@@ -108,7 +114,7 @@ This extension contributes the following settings:
 
 ## Known Issues
 
-Please report issues on the [GitHub repository](https://github.com/yourusername/drone-ci-helper/issues).
+Please report issues on the [GitHub repository](https://github.com/dipievil/drone-ci-helper/issues).
 
 ## Release Notes
 
@@ -117,6 +123,7 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed release notes.
 ### 0.1.0
 
 Initial release of Drone CI Helper:
+
 - Real-time YAML validation
 - Autocomplete support
 - Hover documentation
@@ -136,30 +143,3 @@ This extension is licensed under the MIT License.
 
 - Drone CI schema from [SchemaStore](https://www.schemastore.org/)
 - Built with the [Language Server Protocol](https://microsoft.github.io/language-server-protocol/)
-
----
-
-**Enjoy using Drone CI Helper!** 🚀
-
-
-- Syntax highlighting for `.drone.yml` files.
-- Snippets for common Drone CI configurations.
-- Validation of Drone CI YAML syntax.
-- Integration with Drone CI documentation for quick reference.
-
-## Installation
-
-1. Open VSCode.
-2. Go to the Extensions view by clicking on the Extensions icon in the Activity Bar on the side of the window.
-3. Search for "Drone CI Helper".
-4. Click "Install" to add the extension to your VSCode.
-
-## Usage
-
-1. Open a `.drone.yml` file in VSCode.
-2. Use the provided snippets by typing the prefix and pressing `Tab`.
-3. Hover over syntax elements to see validation messages, suggestions and examples.
-4. Hover over red marked lines to see validation errors and suggestions.
-5. Validate your Drone CI configuration by running the command `Drone CI: Validate YAML` from the Command Palette (`Ctrl+Shift+P`).
-6. Access Drone CI documentation by running the command `Drone CI: Open Documentation` from the Command Palette.
-7. Customize settings by going to `File > Preferences > Settings` and searching for "Drone CI".
