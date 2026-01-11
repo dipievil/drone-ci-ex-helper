@@ -2,7 +2,7 @@
   "name": "drone-ci-helper",
   "displayName": "Drone CI Helper",
   "description": "VS Code extension for Drone CI YAML validation, autocomplete, and documentation",
-  "version": "0.1.3",
+  "version": "0.1.6",
   "publisher": "dipievil",
   "engines": {
     "vscode": "^1.75.0"

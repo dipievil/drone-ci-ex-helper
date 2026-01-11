@@ -1,0 +1,22 @@
+---
+kind: pipeline
+type: docker
+name: hello-world
+
+steps:
+  - name: hello
+    image: alpine:latest
+    commands:
+      - echo "Hello, World!"
+    calca:
+      foo: bar
+
+trigger:
+    event:
+      - push
+      - pull_request
+      - cron
+
+
+    branch:
+      - main

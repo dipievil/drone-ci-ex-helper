@@ -37,6 +37,21 @@ let droneSchema: any;
 let ajv: Ajv;
 let validateSchema: ValidateFunction<any> | undefined;
 
+interface SchemaError {
+  instancePath: string;
+  schemaPath: string;
+  keyword: string;
+  params: any;
+  message?: string;
+} 
+
+interface ErrorPosition {
+  line: number;
+  character: number;
+  endLine: number;
+  endCharacter: number;
+}
+
 connection.onInitialize((params: InitializeParams) => {
   const capabilities = params.capabilities;
 
@@ -203,6 +218,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
         diagnostics.push(diagnostic);
       }
     } else if (validateSchema) {
+
       // Validate against schema
       const yamlObj = doc.toJSON();
       const valid = validateSchema(yamlObj);
@@ -213,18 +229,127 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
       }
 
       if (!valid && validateSchema.errors) {
-        for (const error of validateSchema.errors) {
-          const errorPath = error.instancePath || '/';
-          const message = `${errorPath}: ${error.message}`;
+        // Filter errors to show only relevant ones based on the document kind/type
+        const kind = (yamlObj as any)?.kind || 'pipeline';
+        const type = (yamlObj as any)?.type || 'docker';
+        
+        const filteredErrors = validateSchema.errors.filter(error => {
+          // Skip oneOf errors from other kind types at root level
+          if (error.keyword === 'required' && error.instancePath === '') {
+            const missingProp = error.params?.missingProperty;
+            if (missingProp === 'hmac' && kind !== 'signature') return false;
+          }
+          
+          // Skip const errors for wrong kind/type values
+          if (error.keyword === 'const') {
+            if (error.instancePath === '/kind') {
+              const allowedValue = error.params?.allowedValue;
+              if (allowedValue !== kind) return false;
+            }
+            if (error.instancePath === '/type') {
+              const allowedValue = error.params?.allowedValue;
+              if (allowedValue !== type) return false;
+            }
+          }
+          
+          // Skip oneOf/allOf/anyOf errors (too technical for users)
+          if (error.keyword === 'oneOf' || error.keyword === 'allOf' || error.keyword === 'anyOf') return false;
+          
+          // Skip generic type errors that are consequences of oneOf validation
+          if (error.keyword === 'type' && error.instancePath.startsWith('/trigger/')) {
+            // These are usually from anyOf branches that don't match
+            return false;
+          }
+          
+          return true;
+        });
+
+        for (const error of filteredErrors) {
+
+          let errorPosition: ErrorPosition = { 
+            line: 0, 
+            character: 0, 
+            endLine: 0,
+            endCharacter: 0 };
+          
+          const instancePath = error.instancePath || '/';
+          
+          try {
+            // Use YAML parser to find exact position
+            const pathParts = instancePath.split('/').filter(p => p);
+            
+            connection.console.log(`Processing error at path: ${instancePath}, parts: ${JSON.stringify(pathParts)}`);
+            
+            if (pathParts.length > 0) {
+              // Navigate through the parsed document to find the node
+              let currentNode: any = doc.contents;
+              
+              for (let i = 0; i < pathParts.length; i++) {
+                const part = pathParts[i];
+                
+                if (!currentNode) {
+                  connection.console.warn(`Navigation stopped at part ${i}: ${part} - currentNode is null`);
+                  break;
+                }
+                
+                // Check if it's an array index
+                if (/^\d+$/.test(part)) {
+                  const index = parseInt(part, 10);
+                  if (YAML.isSeq(currentNode)) {
+                    currentNode = currentNode.items[index];
+                    connection.console.log(`Navigated to array index ${index}`);
+                  } else {
+                    connection.console.warn(`Expected sequence at ${part}, got ${currentNode?.constructor?.name}`);
+                    break;
+                  }
+                } else {
+                  // It's an object key - navigate to the value of this key
+                  if (YAML.isMap(currentNode)) {
+                    const pair = currentNode.items.find((item: any) => 
+                      item.key && item.key.value === part
+                    );
+                    if (pair) {
+                      // For 'additionalProperties' errors, we want the key position
+                      // For other errors, we want the value position
+                      if (error.keyword === 'additionalProperties' && 
+                          error.params?.additionalProperty === part) {
+                        currentNode = pair.key;
+                        connection.console.log(`Navigated to key '${part}' (additionalProperty)`);
+                      } else {
+                        currentNode = pair.value;
+                        connection.console.log(`Navigated to value of key '${part}'`);
+                      }
+                    } else {
+                      connection.console.warn(`Key '${part}' not found in map`);
+                      break;
+                    }
+                  } else {
+                    connection.console.warn(`Expected map at ${part}, got ${currentNode?.constructor?.name}`);
+                    break;
+                  }
+                }
+              }              
+
+              // Get position from the node
+              errorPosition = getErrorPositionFromNode(currentNode, textDocument);
+            } else {
+              // Root level error
+              connection.console.log(`Root level error: ${error.keyword}`);
+            }
+          } catch (e) {
+            connection.console.error(`Error finding position for ${instancePath}: ${e}`);
+          }
+          
+          let message = generateErrorMessage(error);
 
           const diagnostic: Diagnostic = {
             severity: DiagnosticSeverity.Error,
             range: {
-              start: { line: 0, character: 0 },
-              end: { line: 0, character: 0 }
+              start: { line: errorPosition.line, character: errorPosition.character },
+              end: { line: errorPosition.endLine || errorPosition.line, character: errorPosition.endCharacter || errorPosition.character + 100 }
             },
             message: message,
-            source: 'Drone CI Schema'
+            source: 'Drone CI'
           };
 
           if (hasDiagnosticRelatedInformationCapability) {
@@ -234,7 +359,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
                   uri: textDocument.uri,
                   range: Object.assign({}, diagnostic.range)
                 },
-                message: error.keyword || 'Validation error'
+                message: `At path: ${instancePath}`
               }
             ];
           }
@@ -273,6 +398,51 @@ connection.onCompletion(
     return getDroneCompletions(_textDocumentPosition);
   }
 );
+
+function getErrorPositionFromNode(currentNode: any, textDocument: TextDocument) {
+  let errorPosition: ErrorPosition = { line: 0, character: 0, endLine: 0, endCharacter: 0 };
+
+  if (currentNode?.range) {
+    const startPos = currentNode.range[0];
+    const endPos = currentNode.range[1];
+
+    const startPosition = textDocument.positionAt(startPos);
+    const endPosition = textDocument.positionAt(endPos);
+
+    connection.console.log(`Error position found at line ${startPosition.line}, character ${startPosition.character}, to line ${endPosition.line}, character ${endPosition.character}`);
+
+    errorPosition.line = startPosition.line;
+    errorPosition.character = startPosition.character;
+    errorPosition.endLine = endPosition.line;
+    errorPosition.endCharacter = endPosition.character;
+  } else {
+    connection.console.warn(`No range found for node: ${JSON.stringify(currentNode)}`);
+  }
+
+  return errorPosition;
+}
+
+// Generate a friendly error message based on the schema error content
+function generateErrorMessage(error: SchemaError): string {
+  let message = '';
+
+  if (error.keyword === 'enum') {
+    const allowedValues = error.params?.allowedValues || [];
+    message = `Invalid value. Must be one of: ${allowedValues.join(', ')}`;
+  } else if (error.keyword === 'additionalProperties') {
+    const additionalProp = error.params?.additionalProperty;
+    message = `Unknown property '${additionalProp}'. This property is not allowed here.`;
+  } else if (error.keyword === 'required') {
+    const missingProp = error.params?.missingProperty;
+    message = `Missing required property '${missingProp}'`;
+  } else if (error.keyword === 'type') {
+    const expectedType = error.params?.type;
+    message = `Invalid type. Expected ${expectedType}`;
+  } else {
+    message = error.message || 'Validation error';
+  }
+  return message;
+}
 
 function getDroneCompletions(params: TextDocumentPositionParams): CompletionItem[] {
   const completions: CompletionItem[] = [];
