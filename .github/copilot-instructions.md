@@ -17,6 +17,9 @@ This VS Code extension provides comprehensive Drone CI YAML support through a La
 
 ## Development Workflows
 
+**Code changes**:
+- Always increase app version in `package.json` before installing or publishing
+
 **Building & Testing**:
 ```bash
 npm run compile          # Compile TypeScript (both client/server)
